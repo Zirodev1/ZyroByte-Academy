@@ -35,37 +35,29 @@ exports.completeLesson = async (req, res) => {
   
 
   exports.createLesson = async (req, res) => {
-    const { title, content, videoUrl, course, quiz } = req.body;
     try {
-      const lesson = new Lesson({ title, content, videoUrl, course, quiz });
+      const lesson = new Lesson(req.body);
       await lesson.save();
       res.status(201).json(lesson);
     } catch (error) {
-      res.status(500).json({ message: error.message });
+      res.status(400).json({ message: error.message });
     }
-  };  
-
+  };
+  
   exports.updateLesson = async (req, res) => {
-    const { id } = req.params;
-    const { title, content, videoUrl, course, quiz } = req.body;
     try {
-      const lesson = await Lesson.findByIdAndUpdate(
-        id,
-        { title, content, videoUrl, course, quiz },
-        { new: true }
-      );
+      const lesson = await Lesson.findByIdAndUpdate(req.params.id, req.body, { new: true });
       res.json(lesson);
     } catch (error) {
-      res.status(500).json({ message: error.message });
+      res.status(400).json({ message: error.message });
     }
   };
   
   exports.deleteLesson = async (req, res) => {
-    const { id } = req.params;
     try {
-      await Lesson.findByIdAndDelete(id);
+      await Lesson.findByIdAndDelete(req.params.id);
       res.json({ message: 'Lesson deleted' });
     } catch (error) {
-      res.status(500).json({ message: error.message });
+      res.status(400).json({ message: error.message });
     }
   };

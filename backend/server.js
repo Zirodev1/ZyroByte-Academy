@@ -13,9 +13,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-
-console.log('Mongo URI:', process.env.MONGO_URI); 
-console.log('JWT Secret:', process.env.JWT_SECRET);
+app.use('api/payment/webhoot', express.raw({ type: '*/*'}));
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI).then(() => {

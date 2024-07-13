@@ -14,6 +14,7 @@ exports.createCheckoutSession = async (req, res) => {
             }],
             success_url: 'http://localhost:3000/dashboard?session_id={CHECKOUT_SESSION_ID}',
             cancel_url: 'http://localhost:3000',
+            client_reference_id: req.user._id,
         });
 
         res.json({ sessionId: session.id})
@@ -27,7 +28,7 @@ exports.handleWebhook = async (req, res) => {
     let event;
 
     try {
-        event = stripe.webhooks.constructEvent(req.rawbody, sig, 'web hook secret');
+        event = stripe.webhooks.constructEvent(req.rawbody, sig, process.env.STRIPE_WEBHOOK);
 
         if(event.type === 'checkout.session.completed'){
             const session = event.data.object;
