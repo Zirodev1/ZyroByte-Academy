@@ -1,0 +1,80 @@
+/* src/styles/main.css */
+
+/* Basic Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  /* Global Styles */
+  body {
+    font-family: Arial, sans-serif;
+  }
+  
+  header, footer {
+    background-color: #333;
+    color: #fff;
+    padding: 1rem;
+  }
+  
+  header nav ul, footer nav ul {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+  }
+  
+  header nav ul li, footer nav ul li {
+    display: inline;
+  }
+  
+  header nav ul li a, footer nav ul li a {
+    color: #fff;
+    text-decoration: none;
+  }
+  
+  .hero {
+    text-align: center;
+    padding: 2rem 0;
+    background-color: #f4f4f4;
+  }
+  
+  .hero .btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background-color: #007BFF;
+    color: #fff;
+    text-decoration: none;
+    margin-top: 1rem;
+  }
+  
+  .featured-courses {
+    padding: 2rem 0;
+  }
+  
+  .featured-courses ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+  }
+  
+  .featured-courses li {
+    background-color: #f9f9f9;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    width: 300px;
+    text-align: center;
+  }
+  
+  .featured-courses .btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background-color: #007BFF;
+    color: #fff;
+    text-decoration: none;
+    margin-top: 1rem;
+  }
+  
