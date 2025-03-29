@@ -13,7 +13,6 @@ const firebaseConfig = {
   measurementId: process.env.FIREBASE_MEASUREMENT_ID
 };
 
-console.log('Firebase config loaded with storage bucket:', firebaseConfig.storageBucket);
 
 // Initialize Firebase
 try {
@@ -23,7 +22,7 @@ try {
   
   console.log('Initializing Firebase storage...');
   const storage = getStorage(firebaseApp);
-  console.log('Firebase storage initialized successfully with bucket:', storage.app.options.storageBucket);
+  console.log('Firebase storage initialized successfully');
   
   module.exports = { storage };
 } catch (error) {

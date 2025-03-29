@@ -32,6 +32,8 @@ import ExerciseManagement from './components/Admin/ExerciseManagement';
 import SearchResults from './components/Search/SearchResults';
 import TestUploader from './components/Admin/EditorJS/TestUploader';
 import SimpleUploader from './components/Admin/EditorJS/SimpleUploader';
+import CourseList from './components/Course/CourseList';
+import CategoryCoursesList from './components/Course/CategoryCourses';
 
 function App() {
   return (
@@ -41,6 +43,8 @@ function App() {
           <Route exact path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/courses" element={<CourseList />} />
+          <Route path="/categories/:categoryId/courses" element={<CategoryCoursesList />} />
           <Route path='/courses/:id' element={<CourseDetails />} />
           <Route path='/subscription' element={<Subscription />} />
           <Route path='/search' element={<SearchResults />} />
