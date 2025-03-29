@@ -60,7 +60,20 @@ exports.getModulesByCourse = async (req, res) => {
 // Get a single module
 exports.getModule = async (req, res) => {
   try {
-    const module = await Module.findById(req.params.id)
+    const moduleId = req.params.id;
+    
+    // Validate module ID
+    if (!moduleId || typeof moduleId !== 'string') {
+      console.error('Invalid module ID format:', moduleId);
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid module ID format'
+      });
+    }
+    
+    console.log('Getting module with ID:', moduleId);
+    
+    const module = await Module.findById(moduleId)
       .populate({
         path: 'lessons',
         options: { sort: { order: 1 } }
@@ -71,6 +84,7 @@ exports.getModule = async (req, res) => {
       });
     
     if (!module) {
+      console.error('Module not found with ID:', moduleId);
       return res.status(404).json({
         success: false,
         message: 'Module not found'

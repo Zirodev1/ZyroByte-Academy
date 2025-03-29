@@ -33,9 +33,11 @@ router.get('/images/:fileName', uploadController.serveImage);
 // Local file upload routes
 router.post('/image', authMiddleware, adminMiddleware, uploadController.uploadImage);
 
-// Firebase storage upload routes
+// Firebase storage upload routes - controller has its own multer middleware
 router.post('/firebase', authMiddleware, adminMiddleware, uploadController.uploadFile);
 router.post('/firebase/multiple', authMiddleware, adminMiddleware, uploadController.uploadMultipleFiles);
 
+// Test Firebase connectivity
+router.get('/firebase-test', uploadController.testFirebaseConnection);
 
 module.exports = router; 

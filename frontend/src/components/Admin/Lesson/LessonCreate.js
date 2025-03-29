@@ -4,6 +4,7 @@ import api from '../../../services/api';
 import { toast } from 'react-toastify';
 import { FaArrowLeft } from 'react-icons/fa';
 import Sidebar from '../Course/Sidebar';
+import LessonEditor from '../EditorJS/LessonEditor';
 
 const LessonCreate = () => {
   const { moduleId, subModuleId } = useParams();
@@ -12,17 +13,20 @@ const LessonCreate = () => {
   const [formData, setFormData] = useState({
     title: '',
     content: '',
+    editorContent: {},
     type: 'text',
     duration: '',
     videoUrl: '',
     isPublished: false,
     order: 0,
     module: moduleId || '',
-    submodule: subModuleId || ''
+    subModule: subModuleId || ''
   });
   const navigate = useNavigate();
   
   useEffect(() => {
+    console.log('Module ID from params:', moduleId);
+    console.log('SubModule ID from params:', subModuleId);
     fetchParentInfo();
   }, [moduleId, subModuleId]);
   
@@ -33,7 +37,13 @@ const LessonCreate = () => {
         ? `/submodules/${subModuleId}` 
         : `/modules/${moduleId}`;
       
+      console.log('Fetching parent info from endpoint:', endpoint);
+      console.log('Module ID (raw):', moduleId);
+      console.log('SubModule ID (raw):', subModuleId);
+      
       const response = await api.get(endpoint);
+      console.log('Parent info response:', response.data);
+      
       setParentInfo({
         type: isSubmodule ? 'submodule' : 'module',
         data: response.data.data
@@ -51,24 +61,88 @@ const LessonCreate = () => {
       [name]: type === 'checkbox' ? checked : value
     });
   };
+
+  const handleEditorChange = (data) => {
+    // Only update form when we have valid editor data
+    if (data && data.blocks && data.blocks.length > 0) {
+      console.log('Editor data updated:', data);
+      // Use functional update pattern to avoid race conditions
+      setFormData(prevState => ({
+        ...prevState,
+        editorContent: data,
+        content: JSON.stringify(data)
+      }));
+    }
+  };
   
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('Form submission started:', formData);
     
+    // Validate form data
+    if (!formData.title) {
+      toast.error('Lesson title is required');
+      return;
+    }
+    
+    setLoading(true); // Set loading first
+
     try {
-      setLoading(true);
-      await api.post('/lessons', formData);
+      // Ensure we have module ID as a string
+      const moduleIdStr = typeof moduleId === 'object' ? moduleId.toString() : moduleId;
+      // Ensure we have subModule ID as a string if it exists
+      const subModuleIdStr = subModuleId ? 
+        (typeof subModuleId === 'object' ? subModuleId.toString() : subModuleId) : 
+        null;
+      
+      console.log('Module ID (processed):', moduleIdStr);
+      console.log('SubModule ID (processed):', subModuleIdStr);
+      
+      // Create a clean submission object with only the needed fields
+      const submissionData = {
+        title: formData.title,
+        type: formData.type,
+        duration: formData.duration || 0,
+        videoUrl: formData.videoUrl || '',
+        isPublished: formData.isPublished || false,
+        // Format content as EditorJS data structure
+        content: JSON.stringify(
+          formData.editorContent && Object.keys(formData.editorContent).length > 0 
+            ? formData.editorContent 
+            : {blocks: [{type: 'paragraph', data: {text: ''}}]}
+        )
+      };
+      
+      // Set the module and subModule fields correctly
+      if (subModuleIdStr) {
+        // For submodule lessons, we need both module and subModule
+        submissionData.module = moduleIdStr;
+        submissionData.subModule = subModuleIdStr;
+      } else {
+        // For module lessons, we only need module
+        submissionData.module = moduleIdStr;
+      }
+      
+      console.log('Final submission data:', submissionData);
+      
+      // Send the request to create the lesson
+      const response = await api.post('/lessons', submissionData);
+      console.log('Lesson creation response:', response.data);
+      
       toast.success('Lesson created successfully');
       
       // Navigate back to lesson list
       const returnUrl = subModuleId
-        ? `/admin/submodules/${subModuleId}/lessons`
-        : `/admin/modules/${moduleId}/lessons`;
+        ? `/admin/submodules/${subModuleIdStr}/lessons`
+        : `/admin/modules/${moduleIdStr}/lessons`;
+      
+      console.log('Navigating to:', returnUrl);
       navigate(returnUrl);
     } catch (err) {
       console.error("Error creating lesson:", err);
-      toast.error(err.response?.data?.message || 'Failed to create lesson');
-      setLoading(false);
+      const errorMessage = err.response?.data?.message || 'Failed to create lesson';
+      toast.error(errorMessage);
+      setLoading(false); // Only reset loading on error
     }
   };
   
@@ -171,20 +245,21 @@ const LessonCreate = () => {
                 />
               </div>
               
-              <div className="mb-4">
+              <div className="mb-6">
                 <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
                   Lesson Content *
                 </label>
-                <textarea
-                  id="content"
-                  name="content"
-                  value={formData.content}
-                  onChange={handleInputChange}
-                  required
-                  rows={10}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter lesson content or description"
-                />
+                <div className="border border-gray-300 rounded-md min-h-[400px] w-full" id="editor-container">
+                  <LessonEditor 
+                    initialData={{blocks: []}} 
+                    onChange={handleEditorChange} 
+                    key="lesson-editor-create"
+                    placeholder="Start typing your lesson content here..."
+                  />
+                </div>
+                <p className="mt-1 text-sm text-gray-500">
+                  Use the rich text editor to create your lesson content with images, videos, code snippets, and more.
+                </p>
               </div>
               
               <div className="mb-4">

@@ -4,6 +4,7 @@ import api from '../../../services/api';
 import { toast } from 'react-toastify';
 import { FaArrowLeft } from 'react-icons/fa';
 import Sidebar from '../Course/Sidebar';
+import LessonEditor from '../EditorJS/LessonEditor';
 
 const LessonEdit = () => {
   const { moduleId, subModuleId, lessonId } = useParams();
@@ -12,6 +13,7 @@ const LessonEdit = () => {
   const [formData, setFormData] = useState({
     title: '',
     content: '',
+    editorContent: {},
     type: 'text',
     duration: '',
     videoUrl: '',
@@ -34,9 +36,70 @@ const LessonEdit = () => {
       const response = await api.get(`/lessons/${lessonId}`);
       const lessonData = response.data.data;
       
+      // Parse content if it's JSON format (EditorJS data)
+      let editorContent = {blocks: []};
+      let contentValue = lessonData.content || '';
+      
+      try {
+        if (contentValue && typeof contentValue === 'string') {
+          // Try to parse the content as JSON
+          const parsedContent = JSON.parse(contentValue);
+          
+          // Validate that it has the EditorJS structure (blocks array)
+          if (parsedContent && typeof parsedContent === 'object') {
+            // If it has blocks property, it's already EditorJS format
+            if (Array.isArray(parsedContent.blocks)) {
+              editorContent = parsedContent;
+            } 
+            // If it doesn't have blocks but is an object, it might be older format
+            else if (!parsedContent.blocks && typeof parsedContent === 'object') {
+              // Try to convert to EditorJS format
+              editorContent = {
+                blocks: [
+                  {
+                    type: 'paragraph',
+                    data: {
+                      text: contentValue
+                    }
+                  }
+                ]
+              };
+            }
+          }
+        } else if (contentValue && typeof contentValue === 'string') {
+          // If it's a string but not JSON, create a paragraph block
+          editorContent = {
+            blocks: [
+              {
+                type: 'paragraph',
+                data: {
+                  text: contentValue
+                }
+              }
+            ]
+          };
+        }
+      } catch (e) {
+        console.warn('Could not parse lesson content as JSON:', e);
+        // If parsing fails, create a paragraph with the content
+        editorContent = {
+          blocks: [
+            {
+              type: 'paragraph',
+              data: {
+                text: contentValue
+              }
+            }
+          ]
+        };
+      }
+      
+      console.log('Parsed editor content:', editorContent);
+      
       setFormData({
         title: lessonData.title || '',
-        content: lessonData.content || '',
+        content: contentValue,
+        editorContent: editorContent,
         type: lessonData.type || 'text',
         duration: lessonData.duration || '',
         videoUrl: lessonData.videoUrl || '',
@@ -85,12 +148,31 @@ const LessonEdit = () => {
     });
   };
   
+  const handleEditorChange = (data) => {
+    // Only update form when we have valid editor data
+    if (data && data.blocks && data.blocks.length > 0) {
+      // Use functional update pattern to avoid race conditions
+      setFormData(prevState => ({
+        ...prevState,
+        editorContent: data,
+        content: JSON.stringify(data)
+      }));
+    }
+  };
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     try {
       setLoading(true);
-      await api.put(`/lessons/${lessonId}`, formData);
+      
+      // Prepare submission data - use editorContent for rich text
+      const submissionData = {
+        ...formData,
+        content: formData.editorContent ? JSON.stringify(formData.editorContent) : formData.content
+      };
+      
+      await api.put(`/lessons/${lessonId}`, submissionData);
       toast.success('Lesson updated successfully');
       navigateBack();
     } catch (err) {
@@ -205,19 +287,20 @@ const LessonEdit = () => {
                     />
                   </div>
                   
-                  <div className="mb-4">
+                  <div className="mb-6">
                     <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
                       Lesson Content *
                     </label>
-                    <textarea
-                      id="content"
-                      name="content"
-                      value={formData.content}
-                      onChange={handleInputChange}
-                      required
-                      rows={10}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                    <div className="border border-gray-300 rounded-md min-h-[400px] w-full" id="editor-container">
+                      <LessonEditor 
+                        initialData={Object.keys(formData.editorContent).length > 0 ? formData.editorContent : {blocks: []}} 
+                        onChange={handleEditorChange}
+                        key={`lesson-editor-${lessonId}`}
+                      />
+                    </div>
+                    <p className="mt-1 text-sm text-gray-500">
+                      Use the rich text editor to create your lesson content with images, videos, code snippets, and more.
+                    </p>
                   </div>
                   
                   <div className="mb-4">

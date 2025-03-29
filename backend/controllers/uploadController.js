@@ -144,9 +144,12 @@ exports.serveImage = (req, res) => {
 // Upload file to Firebase Storage
 exports.uploadFile = async (req, res) => {
   try {
+    console.log('Upload file request received');
+    
     // Single file upload middleware
     upload.single('file')(req, res, async (err) => {
       if (err) {
+        console.error('Upload middleware error:', err);
         return res.status(400).json({
           success: false,
           message: err.message
@@ -154,44 +157,126 @@ exports.uploadFile = async (req, res) => {
       }
       
       if (!req.file) {
+        console.error('No file in request');
         return res.status(400).json({
           success: false,
           message: 'No file uploaded'
         });
       }
       
+      console.log('File received:', {
+        filename: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size
+      });
+      
       const file = req.file;
+      
+      // Check if Firebase is properly initialized
+      if (storage.mock) {
+        console.error('Firebase storage not properly initialized. Using local storage fallback.');
+        
+        // Save file locally as a fallback
+        try {
+          const contentType = getContentTypeFolder(file.mimetype);
+          const timestamp = Date.now();
+          const safeFileName = file.originalname.replace(/\s/g, '_');
+          const fileName = `${contentType}/${timestamp}-${safeFileName}`;
+          
+          // Ensure directory exists
+          const directory = path.join(uploadsDir, contentType);
+          if (!fs.existsSync(directory)) {
+            fs.mkdirSync(directory, { recursive: true });
+          }
+          
+          // Save file
+          const filePath = path.join(directory, `${timestamp}-${safeFileName}`);
+          fs.writeFileSync(filePath, file.buffer);
+          
+          // Generate a local URL
+          const fileUrl = `/uploads/${fileName}`;
+          
+          return res.status(200).json({
+            success: true,
+            message: 'File uploaded successfully to local storage (Firebase fallback)',
+            data: {
+              fileName,
+              fileUrl,
+              fileType: file.mimetype,
+              fileSize: file.size
+            }
+          });
+        } catch (fallbackError) {
+          console.error('Local fallback storage error:', fallbackError);
+          return res.status(500).json({
+            success: false,
+            message: 'Error saving file to local storage',
+            error: fallbackError.message
+          });
+        }
+      }
+      
+      // Proceed with Firebase upload
       const contentType = getContentTypeFolder(file.mimetype);
       const timestamp = Date.now();
       const fileName = `${contentType}/${timestamp}-${file.originalname.replace(/\s/g, '_')}`;
       
-      // Create a storage reference
-      const storageRef = ref(storage, fileName);
-      
-      // Create file metadata including the content type
-      const metadata = {
-        contentType: file.mimetype,
-      };
-      
-      // Upload the file
-      const snapshot = await uploadBytesResumable(storageRef, file.buffer, metadata);
-      
-      // Get the download URL
-      const downloadURL = await getDownloadURL(snapshot.ref);
-      
-      res.status(200).json({
-        success: true,
-        message: 'File uploaded successfully',
-        data: {
-          fileName,
-          fileUrl: downloadURL,
-          fileType: file.mimetype,
-          fileSize: file.size
-        }
-      });
+      try {
+        // Create a storage reference
+        console.log('Creating Firebase storage reference...');
+        const storageRef = ref(storage, fileName);
+        console.log('Storage reference created:', fileName);
+        
+        // Create file metadata including the content type
+        const metadata = {
+          contentType: file.mimetype,
+        };
+        
+        // Upload the file
+        console.log('Starting upload to Firebase...');
+        const snapshot = await uploadBytesResumable(storageRef, file.buffer, metadata);
+        console.log('File uploaded to Firebase successfully');
+        
+        // Get the download URL
+        const downloadURL = await getDownloadURL(snapshot.ref);
+        console.log('Download URL obtained:', downloadURL);
+        
+        // Successful response
+        const responseData = {
+          success: true,
+          message: 'File uploaded successfully',
+          data: {
+            fileName,
+            fileUrl: downloadURL,
+            fileType: file.mimetype,
+            fileSize: file.size
+          }
+        };
+        
+        console.log('Sending response:', responseData);
+        res.status(200).json(responseData);
+      } catch (uploadError) {
+        console.error('Firebase upload error:', uploadError);
+        
+        // Detailed error information
+        const errorDetails = {
+          message: uploadError.message,
+          code: uploadError.code,
+          name: uploadError.name,
+          stack: uploadError.stack
+        };
+        console.error('Error details:', JSON.stringify(errorDetails, null, 2));
+        
+        res.status(500).json({
+          success: false,
+          message: 'Error uploading to Firebase',
+          error: uploadError.message,
+          details: errorDetails
+        });
+      }
     });
   } catch (error) {
-    console.error('Error uploading file:', error);
+    console.error('Error in uploadFile controller:', error);
     res.status(500).json({
       success: false,
       message: 'Error uploading file',
@@ -260,6 +345,70 @@ exports.uploadMultipleFiles = async (req, res) => {
       success: false,
       message: 'Error uploading files',
       error: error.message
+    });
+  }
+};
+
+/**
+ * Test Firebase configuration
+ */
+exports.testFirebaseConnection = async (req, res) => {
+  try {
+    if (storage.mock) {
+      return res.status(500).json({
+        success: false,
+        message: 'Firebase storage not properly initialized',
+        error: storage.error
+      });
+    }
+    
+    // Create a simple test object
+    const testContent = Buffer.from('Test file content');
+    const timestamp = Date.now();
+    const testFileName = `test/${timestamp}-firebase-test.txt`;
+    
+    // Create a storage reference
+    const storageRef = ref(storage, testFileName);
+    
+    // Test metadata
+    const metadata = {
+      contentType: 'text/plain',
+      customMetadata: {
+        'test': 'true',
+        'timestamp': timestamp.toString()
+      }
+    };
+    
+    // Try to upload the test file
+    const snapshot = await uploadBytesResumable(storageRef, testContent, metadata);
+    
+    // Get the download URL
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    
+    res.status(200).json({
+      success: true,
+      message: 'Firebase connection test successful',
+      data: {
+        fileName: testFileName,
+        fileUrl: downloadURL,
+        fileSize: testContent.length,
+        timestamp: timestamp
+      },
+      config: {
+        storageBucket: storage.app?.options?.storageBucket || 'unknown'
+      }
+    });
+  } catch (error) {
+    console.error('Firebase test connection error:', error);
+    
+    res.status(500).json({
+      success: false,
+      message: 'Firebase connection test failed',
+      error: error.message,
+      details: {
+        code: error.code,
+        name: error.name
+      }
     });
   }
 }; 

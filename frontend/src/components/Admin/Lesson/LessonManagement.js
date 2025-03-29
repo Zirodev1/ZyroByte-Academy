@@ -81,8 +81,16 @@ const LessonManagement = () => {
         ? `/lessons/submodule/${subModuleId}` 
         : `/lessons/module/${moduleId}`;
       
+      console.log('Fetching lessons from endpoint:', endpoint);
+      console.log('SubModule ID:', subModuleId);
+      console.log('Module ID:', moduleId);
+      
       const response = await api.get(endpoint);
       const lessonData = response.data.data || [];
+      
+      console.log('Lessons fetched:', lessonData.length);
+      console.log('Lesson data:', lessonData);
+      
       setLessons(lessonData);
       
       // Calculate stats from lesson data

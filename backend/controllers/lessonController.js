@@ -41,10 +41,27 @@ exports.createLesson = async (req, res) => {
   try {
     const { title, module, subModule, isCodingExercise } = req.body;
     
+    console.log('Creating lesson with data:', {
+      module,
+      subModule,
+      title 
+    });
+    
     // If we have a submodule, validate it exists
     if (subModule) {
+      // Validate submodule ID format
+      if (typeof subModule !== 'string') {
+        console.error('Invalid subModule ID format:', subModule);
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid subModule ID format'
+        });
+      }
+      
+      console.log('Looking up submodule with ID:', subModule);
       const subModuleDoc = await SubModule.findById(subModule);
       if (!subModuleDoc) {
+        console.error('SubModule not found with ID:', subModule);
         return res.status(404).json({
           success: false,
           message: 'SubModule not found'
@@ -52,8 +69,10 @@ exports.createLesson = async (req, res) => {
       }
       
       // Get the course from the submodule's parent module
+      console.log('Looking up module with ID:', subModuleDoc.module);
       const moduleDoc = await Module.findById(subModuleDoc.module);
       if (!moduleDoc) {
+        console.error('Parent module not found with ID:', subModuleDoc.module);
         return res.status(404).json({
           success: false,
           message: 'Parent module not found'
@@ -68,19 +87,40 @@ exports.createLesson = async (req, res) => {
       
       const order = lastLesson ? lastLesson.order + 1 : 0;
       
-      // Create the lesson
-      const lesson = await Lesson.create({
+      console.log('Creating lesson with course:', course);
+      // Create the lesson with explicit module and subModule fields
+      const lessonData = {
         ...req.body,
         course,
         module: subModuleDoc.module, // Ensure we have the parent module ID
+        subModule: subModule, // Explicitly set the subModule
         order
-      });
+      };
+      
+      console.log('Creating lesson with data:', lessonData);
+      const lesson = await Lesson.create(lessonData);
+      
+      console.log('Created lesson:', lesson._id);
       
       // Add the lesson to the submodule's lessons array
-      await SubModule.findByIdAndUpdate(
+      const updatedSubModule = await SubModule.findByIdAndUpdate(
         subModule,
-        { $push: { lessons: lesson._id } }
+        { $push: { lessons: lesson._id } },
+        { new: true }
       );
+      
+      console.log('Added lesson to submodule lessons array, updated submodule:', updatedSubModule._id);
+      
+      // Verify that the lesson was added to the submodule
+      const verifySubModule = await SubModule.findById(subModule);
+      console.log('Verified submodule lessons array:', verifySubModule.lessons);
+      
+      // Check if the lesson was properly added
+      if (!verifySubModule.lessons.includes(lesson._id)) {
+        console.error('Lesson was not properly added to the submodule lessons array!');
+      } else {
+        console.log('Lesson was properly added to the submodule lessons array.');
+      }
       
       return res.status(201).json({
         success: true,
@@ -89,9 +129,20 @@ exports.createLesson = async (req, res) => {
     } 
     // Otherwise, handle as a module-level lesson
     else if (module) {
+      // Validate module ID format
+      if (typeof module !== 'string') {
+        console.error('Invalid module ID format:', module);
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid module ID format'
+        });
+      }
+      
+      console.log('Looking up module with ID:', module);
       // Validate module exists
       const moduleDoc = await Module.findById(module);
       if (!moduleDoc) {
+        console.error('Module not found with ID:', module);
         return res.status(404).json({
           success: false,
           message: 'Module not found'
@@ -107,6 +158,7 @@ exports.createLesson = async (req, res) => {
       
       const order = lastLesson ? lastLesson.order + 1 : 0;
       
+      console.log('Creating lesson with course:', course);
       // Create the lesson
       const lesson = await Lesson.create({
         ...req.body,
@@ -114,17 +166,22 @@ exports.createLesson = async (req, res) => {
         order
       });
       
+      console.log('Created lesson:', lesson._id);
+      
       // Add the lesson to the module's lessons array
       await Module.findByIdAndUpdate(
         module,
         { $push: { lessons: lesson._id } }
       );
       
+      console.log('Added lesson to module lessons array');
+      
       return res.status(201).json({
         success: true,
         data: lesson
       });
     } else {
+      console.error('No module or subModule provided');
       return res.status(400).json({
         success: false,
         message: 'Either module or subModule is required'
@@ -138,6 +195,14 @@ exports.createLesson = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: messages.join(', ')
+      });
+    }
+    
+    if (error.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid ID format',
+        details: error.message
       });
     }
     

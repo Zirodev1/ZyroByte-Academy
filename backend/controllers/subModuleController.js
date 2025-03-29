@@ -37,7 +37,20 @@ exports.getSubModulesByModule = async (req, res) => {
 // Get a single submodule
 exports.getSubModule = async (req, res) => {
   try {
-    const subModule = await SubModule.findById(req.params.id)
+    const subModuleId = req.params.id;
+    
+    // Validate submodule ID
+    if (!subModuleId || typeof subModuleId !== 'string') {
+      console.error('Invalid submodule ID format:', subModuleId);
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid submodule ID format'
+      });
+    }
+    
+    console.log('Getting submodule with ID:', subModuleId);
+    
+    const subModule = await SubModule.findById(subModuleId)
       .populate({
         path: 'lessons',
         options: { sort: { order: 1 } }
@@ -48,6 +61,7 @@ exports.getSubModule = async (req, res) => {
       });
     
     if (!subModule) {
+      console.error('SubModule not found with ID:', subModuleId);
       return res.status(404).json({
         success: false,
         message: 'SubModule not found'

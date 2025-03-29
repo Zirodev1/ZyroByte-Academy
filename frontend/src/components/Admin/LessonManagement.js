@@ -381,7 +381,7 @@ const LessonManagement = () => {
                 <div className="form-group">
                   <label htmlFor="content">Lesson Content</label>
                   <LessonEditor 
-                    data={form.editorContent} 
+                    initialData={form.editorContent} 
                     onChange={handleEditorChange} 
                   />
                 </div>

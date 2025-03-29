@@ -30,6 +30,8 @@ import LessonEdit from './components/Admin/Lesson/LessonEdit';
 import QuizManagement from './components/Admin/QuizManagement';
 import ExerciseManagement from './components/Admin/ExerciseManagement';
 import SearchResults from './components/Search/SearchResults';
+import TestUploader from './components/Admin/EditorJS/TestUploader';
+import SimpleUploader from './components/Admin/EditorJS/SimpleUploader';
 
 function App() {
   return (
@@ -102,6 +104,12 @@ function App() {
             {/* Exercise Management Routes */}
             <Route path="/admin/modules/:moduleId/exercises" element={<ExerciseManagement />} />
             <Route path="/admin/submodules/:subModuleId/exercises" element={<ExerciseManagement />} />
+
+            {/* Test Uploader Route */}
+            <Route path="/admin/test-uploader" element={<TestUploader />} />
+
+            {/* Simple Uploader Route */}
+            <Route path="/admin/simple-uploader" element={<SimpleUploader />} />
           </Route>
         </Routes>
       </div>
