@@ -14,12 +14,13 @@ exports.createCheckoutSession = async (req, res) => {
             }],
             success_url: 'http://localhost:3000/dashboard?session_id={CHECKOUT_SESSION_ID}',
             cancel_url: 'http://localhost:3000',
-            client_reference_id: req.user._id,
+            client_reference_id: req.user.id,
         });
 
-        res.json({ sessionId: session.id})
+        res.json({ sessionUrl: session.url, sessionId: session.id });
     } catch (error) {
-        res.status(500).json({ message: error.message})
+        console.error('Stripe checkout error:', error);
+        res.status(500).json({ message: error.message });
     }
 };
 
@@ -28,17 +29,32 @@ exports.handleWebhook = async (req, res) => {
     let event;
 
     try {
-        event = stripe.webhooks.constructEvent(req.rawbody, sig, process.env.STRIPE_WEBHOOK);
+        event = stripe.webhooks.constructEvent(
+            req.body, 
+            sig, 
+            process.env.STRIPE_WEBHOOK
+        );
 
-        if(event.type === 'checkout.session.completed'){
+        if (event.type === 'checkout.session.completed') {
             const session = event.data.object;
-            const user = await User.findById(session.client_reference_id);
-            user.subscribed = true;
-            await user.save()
+            
+            if (session.client_reference_id) {
+                const user = await User.findById(session.client_reference_id);
+                if (user) {
+                    user.subscribed = true;
+                    await user.save();
+                    console.log(`User ${user.email} is now subscribed`);
+                } else {
+                    console.error(`User not found for client_reference_id: ${session.client_reference_id}`);
+                }
+            } else {
+                console.error('No client_reference_id found in session');
+            }
         }
 
-        res.json({ received: true })
+        res.json({ received: true });
     } catch (error) {
-        res.status(400).json({ message: `Webhook error: ${error.message}`})
+        console.error('Webhook error:', error);
+        res.status(400).json({ message: `Webhook error: ${error.message}` });
     }
-}
+};

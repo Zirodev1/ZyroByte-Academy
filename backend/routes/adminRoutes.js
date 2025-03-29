@@ -3,18 +3,18 @@ const router = express.Router();
 const courseController = require('../controllers/courseController');
 const lessonController = require('../controllers/lessonController');
 const quizController = require('../controllers/quizController');
-const admin = require('../middleware/adminMiddleware');
+const { adminMiddleware } = require('../middleware/authMiddleware');
 
-router.post('/courses', admin, courseController.createCourse);
-router.put('/courses/:id', admin, courseController.updateCourse);
-router.delete('/courses/:id', admin, courseController.deleteCourse);
+router.post('/courses', adminMiddleware, courseController.createCourse);
+router.put('/courses/:id', adminMiddleware, courseController.updateCourse);
+router.delete('/courses/:id', adminMiddleware, courseController.deleteCourse);
 
-router.post('/lessons', admin, lessonController.createLesson);
-router.put('/lessons/:id', admin, lessonController.updateLesson);
-router.delete('/lessons/:id', admin, lessonController.deleteLesson);
+router.post('/lessons', adminMiddleware, lessonController.createLesson);
+router.put('/lessons/:id', adminMiddleware, lessonController.updateLesson);
+router.delete('/lessons/:id', adminMiddleware, lessonController.deleteLesson);
 
-router.post('/quizzes', admin, quizController.createQuiz);
-router.put('/quizzes/:id', admin, quizController.updateQuiz);
-router.delete('/quizzes/:id', admin, quizController.deleteQuiz);
+router.post('/quizzes', adminMiddleware, quizController.createQuiz);
+router.put('/quizzes/:id', adminMiddleware, quizController.updateQuiz);
+router.delete('/quizzes/:id', adminMiddleware, quizController.deleteQuiz);
 
 module.exports = router;

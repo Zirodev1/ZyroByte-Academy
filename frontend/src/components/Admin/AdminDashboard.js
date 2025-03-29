@@ -1,361 +1,521 @@
-import React, { useState, useEffect } from "react";
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import api from '../../services/api';
+import { FaUserGraduate, FaChalkboardTeacher, FaBookOpen, FaEye, FaUsers, FaListAlt, FaTh, FaHome, FaUsersCog, FaCog, FaQuestionCircle, FaSignOutAlt } from 'react-icons/fa';
+import { Line, Bar, Doughnut } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
 import Header from '../Header';
 import Footer from '../Footer';
-import api from '../../services/api';
-import './Admin.css';
+
+// Register ChartJS components
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend);
 
 const AdminDashboard = () => {
-    const [stats, setStats] = useState({
-        courses: 0,
-        lessons: 0,
-        quizzes: 0,
-        users: 0,
-        categories: 0,
-        modules: 0,
-        recentActivity: [],
-        courseDistribution: [
-            { name: 'Frontend', value: 0 },
-            { name: 'Backend', value: 0 },
-            { name: 'DevOps', value: 0 },
-            { name: 'Other', value: 0 }
+  const [stats, setStats] = useState({
+    views: { count: 0, change: 0 },
+    visits: { count: 0, change: 0 },
+    newUsers: { count: 0, change: 0 },
+    activeUsers: { count: 0, change: 0 },
+  });
+  
+  const [courseData, setCourseData] = useState([]);
+  const [userActivity, setUserActivity] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState('week');
+  const [activeTab, setActiveTab] = useState('totalUsers');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    fetchDashboardData();
+  }, [timeRange]);
+  
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      
+      // In a real app, you would fetch this data from your API
+      // For now, let's simulate the data
+      
+      // Simulate stats with random data
+      const mockStats = {
+        views: { count: Math.floor(Math.random() * 900000) + 100000, change: (Math.random() * 20 - 10).toFixed(2) },
+        visits: { count: Math.floor(Math.random() * 500000) + 50000, change: (Math.random() * 20 - 5).toFixed(2) },
+        newUsers: { count: Math.floor(Math.random() * 2000) + 500, change: (Math.random() * 10 - 5).toFixed(2) },
+        activeUsers: { count: Math.floor(Math.random() * 300000) + 50000, change: (Math.random() * 10 - 5).toFixed(2) },
+      };
+      
+      setStats(mockStats);
+      
+      // Simulate user activity data
+      const mockUserActivity = [
+        { user: 'John Doe', action: 'Completed a course', timestamp: '5m ago', avatar: 'https://randomuser.me/api/portraits/men/1.jpg' },
+        { user: 'Sarah Smith', action: 'Started a new lesson', timestamp: '10m ago', avatar: 'https://randomuser.me/api/portraits/women/1.jpg' },
+        { user: 'Michael Johnson', action: 'Submitted an exercise', timestamp: '25m ago', avatar: 'https://randomuser.me/api/portraits/men/2.jpg' },
+        { user: 'Emma Wilson', action: 'Passed a quiz', timestamp: '45m ago', avatar: 'https://randomuser.me/api/portraits/women/2.jpg' },
+        { user: 'Robert Brown', action: 'Enrolled in a course', timestamp: '1h ago', avatar: 'https://randomuser.me/api/portraits/men/3.jpg' },
+      ];
+      
+      setUserActivity(mockUserActivity);
+      
+      // Simulate course enrollment data
+      const mockCourseData = [
+        { name: 'HTML & CSS Basics', enrollments: 2489, completionRate: 78 },
+        { name: 'JavaScript Fundamentals', enrollments: 1853, completionRate: 65 },
+        { name: 'React for Beginners', enrollments: 1356, completionRate: 54 },
+        { name: 'Node.js Development', enrollments: 987, completionRate: 42 },
+        { name: 'Full Stack Web Development', enrollments: 754, completionRate: 38 },
+      ];
+      
+      setCourseData(mockCourseData);
+      
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      setLoading(false);
+    }
+  };
+  
+  // Sidebar navigation items
+  const sidebarItems = [
+    { name: 'Dashboard', icon: <FaHome className="w-5 h-5" />, path: '/admin' },
+    { name: 'Categories', icon: <FaTh className="w-5 h-5" />, path: '/admin/categories' },
+    { name: 'Courses', icon: <FaBookOpen className="w-5 h-5" />, path: '/admin/courses' },
+    { name: 'Modules', icon: <FaListAlt className="w-5 h-5" />, path: '/admin/modules' },
+    { name: 'Users', icon: <FaUsers className="w-5 h-5" />, path: '/admin/users' },
+    { name: 'Instructors', icon: <FaChalkboardTeacher className="w-5 h-5" />, path: '/admin/instructors' },
+    { name: 'Settings', icon: <FaCog className="w-5 h-5" />, path: '/admin/settings' },
+    { name: 'Help', icon: <FaQuestionCircle className="w-5 h-5" />, path: '/admin/help' },
+  ];
+  
+  // Prepare chart data
+  const userChartData = {
+    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    datasets: [
+      {
+        label: 'Total Users',
+        data: [8000, 9200, 10500, 11700, 12600, 14000, 15200],
+        borderColor: 'rgb(53, 162, 235)',
+        backgroundColor: 'rgba(53, 162, 235, 0.5)',
+        tension: 0.4,
+      },
+      {
+        label: 'Active Users',
+        data: [5000, 5600, 6200, 6700, 7300, 7800, 8400],
+        borderColor: 'rgb(75, 192, 192)',
+        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+        tension: 0.4,
+      },
+    ],
+  };
+
+  // Enrollment by device type
+  const deviceChartData = {
+    labels: ['Desktop', 'Mobile', 'Tablet', 'Other'],
+    datasets: [
+      {
+        data: [55, 30, 10, 5],
+        backgroundColor: [
+          'rgba(54, 162, 235, 0.8)',
+          'rgba(75, 192, 192, 0.8)',
+          'rgba(153, 102, 255, 0.8)',
+          'rgba(201, 203, 207, 0.8)',
         ],
-        enrollmentTrend: [20, 25, 30, 40, 45, 30, 20]
-    });
-    const [loading, setLoading] = useState(true);
-    const [adminUser, setAdminUser] = useState(null);
+        borderWidth: 1,
+      },
+    ],
+  };
+  
+  // Enrollment by country
+  const locationChartData = {
+    labels: ['United States', 'India', 'Brazil', 'United Kingdom', 'Canada', 'Other'],
+    datasets: [
+      {
+        data: [40, 20, 12, 8, 7, 13],
+        backgroundColor: [
+          'rgba(54, 162, 235, 0.8)',
+          'rgba(75, 192, 192, 0.8)',
+          'rgba(153, 102, 255, 0.8)',
+          'rgba(255, 159, 64, 0.8)',
+          'rgba(255, 99, 132, 0.8)',
+          'rgba(201, 203, 207, 0.8)',
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+  
+  // Format stats number with K and M for thousands and millions
+  const formatNumber = (num) => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1) + 'M';
+    }
+    if (num >= 1000) {
+      return (num / 1000).toFixed(0) + 'K';
+    }
+    return num.toString();
+  };
+  
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+  
+  const handleNavigation = (path) => {
+    navigate(path);
+  };
 
-    useEffect(() => {
-        const fetchStats = async () => {
-            try {
-                setLoading(true);
-                
-                // Fetch admin profile
-                const userResponse = await api.get('/users/profile');
-                setAdminUser(userResponse.data.user);
-                
-                // Fetch real stats where available
-                const [coursesResponse, lessonsResponse, quizzesResponse, usersResponse, categoriesResponse, modulesResponse] = await Promise.all([
-                    api.get('/courses'),
-                    api.get('/lessons'),
-                    api.get('/quizzes'),
-                    api.get('/admin/users').catch(() => ({ data: [] })),
-                    api.get('/categories').catch(() => ({ data: { data: [] } })),
-                    api.get('/api/modules').catch(() => ({ data: { data: [] } }))
-                ]);
-                
-                const courses = coursesResponse.data || [];
-                const lessons = lessonsResponse.data || [];
-                const quizzes = quizzesResponse.data || [];
-                const users = usersResponse.data || [];
-                const categories = categoriesResponse.data?.data || [];
-                const modules = modulesResponse.data?.data || [];
-                
-                // Simple category mapping
-                const categoryCount = courses.reduce((acc, course) => {
-                    const category = course.category || 'Other';
-                    acc[category] = (acc[category] || 0) + 1;
-                    return acc;
-                }, {});
-                
-                // Create mock recent activity data
-                const recentActivity = generateMockActivity();
-                
-                setStats({
-                    courses: courses.length,
-                    lessons: lessons.length,
-                    quizzes: quizzes.length,
-                    users: users.length || 5, // Fallback if admin/users endpoint is not available
-                    categories: categories.length || 0,
-                    modules: modules.length || 0,
-                    recentActivity,
-                    courseDistribution: [
-                        { name: 'Frontend', value: categoryCount['Frontend'] || 2 },
-                        { name: 'Backend', value: categoryCount['Backend'] || 1 },
-                        { name: 'DevOps', value: categoryCount['DevOps'] || 0 },
-                        { name: 'Other', value: categoryCount['Other'] || 1 }
-                    ],
-                    enrollmentTrend: [20, 25, 30, 40, 45, 30, 20]
-                });
-            } catch (error) {
-                console.error("Error fetching admin stats:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchStats();
-    }, []);
-
-    const generateMockActivity = () => {
-        const activities = [
-            { type: 'enrollment', user: 'John Doe', course: 'JavaScript Basics', time: '10 minutes ago' },
-            { type: 'completion', user: 'Sarah Smith', course: 'HTML Fundamentals', time: '1 hour ago' },
-            { type: 'quiz', user: 'Michael Brown', course: 'CSS Mastery', score: '95%', time: '3 hours ago' },
-            { type: 'enrollment', user: 'Emma Wilson', course: 'Node.js Basics', time: '5 hours ago' },
-            { type: 'quiz', user: 'James Taylor', course: 'React Framework', score: '88%', time: 'Yesterday' }
-        ];
-        return activities;
-    };
-
-    // Calculate total color classes
-    const totalCourses = stats.courseDistribution.reduce((sum, item) => sum + item.value, 0);
-    
-    // Get first letter of admin's name for avatar
-    const getInitial = (name) => {
-        return name ? name.charAt(0).toUpperCase() : 'A';
-    };
-
-    const renderActivityIcon = (type) => {
-        switch (type) {
-            case 'enrollment': return <span className="activity-icon enrollment">📋</span>;
-            case 'completion': return <span className="activity-icon completion">🏆</span>;
-            case 'quiz': return <span className="activity-icon quiz">📝</span>;
-            default: return <span className="activity-icon">📌</span>;
-        }
-    };
-
-    const formatToday = () => {
-        const today = new Date();
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        return today.toLocaleDateString('en-US', options);
-    };
-
-    return (
-        <div>
-            <Header />
-            <div className="admin-container">
-                <div className="admin-content">
-                    <div className="admin-header">
-                        <div className="admin-header-left">
-                            <h1 className="admin-title">Admin Dashboard</h1>
-                            <p className="admin-subtitle">{formatToday()}</p>
-                        </div>
-                        {adminUser && (
-                            <div className="admin-user-info">
-                                <div className="admin-greeting">Welcome, {adminUser.name}</div>
-                                <div className="admin-avatar">{getInitial(adminUser.name)}</div>
-                            </div>
-                        )}
-                    </div>
-
-                    {loading ? (
-                        <div className="admin-loading">
-                            <div className="loading-spinner"></div>
-                            <p>Loading dashboard data...</p>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="admin-stats">
-                                <div className="stat-card categories">
-                                    <div className="stat-icon">📋</div>
-                                    <div className="stat-info">
-                                        <div className="stat-number">{stats.categories}</div>
-                                        <div className="stat-label">Categories</div>
-                                    </div>
-                                    <Link to="/admin/categories" className="stat-action">Manage</Link>
-                                </div>
-                                <div className="stat-card courses">
-                                    <div className="stat-icon">📚</div>
-                                    <div className="stat-info">
-                                        <div className="stat-number">{stats.courses}</div>
-                                        <div className="stat-label">Courses</div>
-                                    </div>
-                                    <Link to="/admin/courses" className="stat-action">Manage</Link>
-                                </div>
-                                <div className="stat-card modules">
-                                    <div className="stat-icon">📑</div>
-                                    <div className="stat-info">
-                                        <div className="stat-number">{stats.modules || 0}</div>
-                                        <div className="stat-label">Modules</div>
-                                    </div>
-                                    <Link to="/admin/courses" className="stat-action">View</Link>
-                                </div>
-                                <div className="stat-card lessons">
-                                    <div className="stat-icon">📝</div>
-                                    <div className="stat-info">
-                                        <div className="stat-number">{stats.lessons}</div>
-                                        <div className="stat-label">Lessons</div>
-                                    </div>
-                                    <span className="stat-info">Via Modules</span>
-                                </div>
-                                <div className="stat-card quizzes">
-                                    <div className="stat-icon">🧠</div>
-                                    <div className="stat-info">
-                                        <div className="stat-number">{stats.quizzes}</div>
-                                        <div className="stat-label">Quizzes</div>
-                                    </div>
-                                    <span className="stat-info">Via Modules</span>
-                                </div>
-                                <div className="stat-card users">
-                                    <div className="stat-icon">👥</div>
-                                    <div className="stat-info">
-                                        <div className="stat-number">{stats.users}</div>
-                                        <div className="stat-label">Users</div>
-                                    </div>
-                                    <Link to="/admin/users" className="stat-action">Manage</Link>
-                                </div>
-                            </div>
-
-                            <div className="admin-dashboard-grid">
-                                <div className="admin-panel course-distribution">
-                                    <h2 className="panel-title">Course Distribution</h2>
-                                    <div className="chart-container">
-                                        <div className="pie-chart">
-                                            {stats.courseDistribution.map((item, index) => {
-                                                // Skip if value is 0
-                                                if (item.value === 0) return null;
-                                                
-                                                // Calculate percentage
-                                                const percentage = ((item.value / totalCourses) * 100).toFixed(0);
-                                                
-                                                return (
-                                                    <div 
-                                                        key={index} 
-                                                        className={`pie-segment category-${index + 1}`}
-                                                        style={{ 
-                                                            transform: `rotate(${index * 90}deg)`,
-                                                            clipPath: `polygon(50% 50%, 50% 0%, ${50 + 50 * Math.cos(Math.PI / 2)}% ${50 + 50 * Math.sin(Math.PI / 2)}%)`
-                                                        }}
-                                                    >
-                                                        <span className="segment-label">{percentage}%</span>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                        <div className="chart-legend">
-                                            {stats.courseDistribution.map((item, index) => (
-                                                <div key={index} className="legend-item">
-                                                    <span className={`legend-color category-${index + 1}`}></span>
-                                                    <span className="legend-label">{item.name}</span>
-                                                    <span className="legend-value">{item.value}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div className="admin-panel recent-activity">
-                                    <h2 className="panel-title">Recent Activity</h2>
-                                    <div className="activity-list">
-                                        {stats.recentActivity.map((activity, index) => (
-                                            <div key={index} className="activity-item">
-                                                {renderActivityIcon(activity.type)}
-                                                <div className="activity-details">
-                                                    <div className="activity-text">
-                                                        <span className="activity-user">{activity.user}</span>
-                                                        {activity.type === 'enrollment' && (
-                                                            <span> enrolled in <strong>{activity.course}</strong></span>
-                                                        )}
-                                                        {activity.type === 'completion' && (
-                                                            <span> completed <strong>{activity.course}</strong></span>
-                                                        )}
-                                                        {activity.type === 'quiz' && (
-                                                            <span> scored <strong>{activity.score}</strong> on <strong>{activity.course}</strong> quiz</span>
-                                                        )}
-                                                    </div>
-                                                    <div className="activity-time">{activity.time}</div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                                
-                                <div className="admin-panel enrollment-trend">
-                                    <h2 className="panel-title">Weekly Enrollment Trend</h2>
-                                    <div className="trend-chart">
-                                        {stats.enrollmentTrend.map((value, index) => (
-                                            <div 
-                                                key={index} 
-                                                className="trend-bar"
-                                                style={{ height: `${value * 2}px` }}
-                                                title={`Day ${index + 1}: ${value} enrollments`}
-                                            />
-                                        ))}
-                                    </div>
-                                    <div className="trend-labels">
-                                        <span>Mon</span>
-                                        <span>Tue</span>
-                                        <span>Wed</span>
-                                        <span>Thu</span>
-                                        <span>Fri</span>
-                                        <span>Sat</span>
-                                        <span>Sun</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="admin-quick-actions">
-                                <h2 className="section-title">Quick Actions</h2>
-                                <div className="admin-cards">
-                                    <div className="admin-card">
-                                        <div className="admin-card-header">
-                                            <div className="card-icon">📚</div>
-                                            <h2 className="admin-card-title">Course Management</h2>
-                                        </div>
-                                        <div className="admin-card-content">
-                                            <p className="admin-card-description">
-                                                Create, edit, and delete courses. Manage course content and settings.
-                                            </p>
-                                        </div>
-                                        <div className="admin-card-footer">
-                                            <Link to="/admin/courses" className="admin-button">Manage Courses</Link>
-                                        </div>
-                                    </div>
-
-                                    <div className="admin-card">
-                                        <div className="admin-card-header">
-                                            <div className="card-icon">📝</div>
-                                            <h2 className="admin-card-title">Lesson Management</h2>
-                                        </div>
-                                        <div className="admin-card-content">
-                                            <p className="admin-card-description">
-                                                Create and organize lessons for your courses. Add videos and content.
-                                            </p>
-                                        </div>
-                                        <div className="admin-card-footer">
-                                            <Link to="/admin/lessons" className="admin-button">Manage Lessons</Link>
-                                        </div>
-                                    </div>
-
-                                    <div className="admin-card">
-                                        <div className="admin-card-header">
-                                            <div className="card-icon">🧠</div>
-                                            <h2 className="admin-card-title">Quiz Management</h2>
-                                        </div>
-                                        <div className="admin-card-content">
-                                            <p className="admin-card-description">
-                                                Create quizzes and assessments for your courses. Set up questions and answers.
-                                            </p>
-                                        </div>
-                                        <div className="admin-card-footer">
-                                            <Link to="/admin/quizzes" className="admin-button">Manage Quizzes</Link>
-                                        </div>
-                                    </div>
-
-                                    <div className="admin-card">
-                                        <div className="admin-card-header">
-                                            <div className="card-icon">👥</div>
-                                            <h2 className="admin-card-title">User Management</h2>
-                                        </div>
-                                        <div className="admin-card-content">
-                                            <p className="admin-card-description">
-                                                Manage user accounts, permissions, and subscription status.
-                                            </p>
-                                        </div>
-                                        <div className="admin-card-footer">
-                                            <Link to="/admin/users" className="admin-button">Manage Users</Link>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </>
-                    )}
-                </div>
-            </div>
-            <Footer />
+  return (
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar */}
+      <div className={`${sidebarOpen ? 'w-64' : 'w-20'} transition-all duration-300 bg-white shadow-lg h-screen fixed left-0 z-10`}>
+        <div className="h-16 flex items-center justify-between px-4 border-b">
+          <div className={`${sidebarOpen ? 'block' : 'hidden'} text-xl font-semibold text-blue-600`}>ZyroByte Admin</div>
+          <button 
+            onClick={toggleSidebar}
+            className="p-2 rounded-md hover:bg-gray-100"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={sidebarOpen ? "M4 6h16M4 12h16M4 18h16" : "M4 6h16M4 12h16M4 18h16"} />
+            </svg>
+          </button>
         </div>
-    );
+        <div className="py-4 overflow-y-auto">
+          <ul className="space-y-1">
+            {sidebarItems.map((item, index) => (
+              <li key={index}>
+                <button
+                  onClick={() => handleNavigation(item.path)}
+                  className={`flex items-center w-full px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-md
+                    ${window.location.pathname === item.path ? 'bg-blue-50 text-blue-600' : ''}`}
+                >
+                  <span className="mr-3">{item.icon}</span>
+                  <span className={`${sidebarOpen ? 'block' : 'hidden'}`}>{item.name}</span>
+                </button>
+              </li>
+            ))}
+            <li className="px-4 pt-6">
+              <div className={`${sidebarOpen ? 'block' : 'hidden'} border-t border-gray-200 my-1`}></div>
+              <button className="flex items-center w-full px-4 py-3 text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-md mt-2">
+                <FaSignOutAlt className="w-5 h-5 mr-3" />
+                <span className={`${sidebarOpen ? 'block' : 'hidden'}`}>Logout</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+      {/* Main Content */}
+      <div className={`flex-1 overflow-auto ${sidebarOpen ? 'ml-64' : 'ml-20'} transition-all duration-300`}>
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+            <div className="flex space-x-2">
+              <button 
+                onClick={() => setTimeRange('week')}
+                className={`px-3 py-1 text-sm rounded-md ${timeRange === 'week' ? 'bg-blue-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-100'}`}
+              >
+                Week
+              </button>
+              <button 
+                onClick={() => setTimeRange('month')}
+                className={`px-3 py-1 text-sm rounded-md ${timeRange === 'month' ? 'bg-blue-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-100'}`}
+              >
+                Month
+              </button>
+              <button 
+                onClick={() => setTimeRange('year')}
+                className={`px-3 py-1 text-sm rounded-md ${timeRange === 'year' ? 'bg-blue-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-100'}`}
+              >
+                Year
+              </button>
+            </div>
+          </div>
+          
+          {/* Stat Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            {/* Views Card */}
+            <div className="bg-white rounded-lg shadow p-5">
+              <div className="flex justify-between">
+                <div>
+                  <p className="text-gray-500 text-sm">Views</p>
+                  <h2 className="text-3xl font-bold">{formatNumber(stats.views.count)}</h2>
+                </div>
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <FaEye className="text-blue-600" />
+                </div>
+              </div>
+              <div className={`mt-2 text-sm ${parseFloat(stats.views.change) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {parseFloat(stats.views.change) >= 0 ? '+' : ''}{stats.views.change}%
+              </div>
+            </div>
+            
+            {/* Visits Card */}
+            <div className="bg-white rounded-lg shadow p-5">
+              <div className="flex justify-between">
+                <div>
+                  <p className="text-gray-500 text-sm">Visits</p>
+                  <h2 className="text-3xl font-bold">{formatNumber(stats.visits.count)}</h2>
+                </div>
+                <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                  <FaUsers className="text-purple-600" />
+                </div>
+              </div>
+              <div className={`mt-2 text-sm ${parseFloat(stats.visits.change) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {parseFloat(stats.visits.change) >= 0 ? '+' : ''}{stats.visits.change}%
+              </div>
+            </div>
+            
+            {/* New Users Card */}
+            <div className="bg-white rounded-lg shadow p-5">
+              <div className="flex justify-between">
+                <div>
+                  <p className="text-gray-500 text-sm">New Users</p>
+                  <h2 className="text-3xl font-bold">{formatNumber(stats.newUsers.count)}</h2>
+                </div>
+                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                  <FaUserGraduate className="text-green-600" />
+                </div>
+              </div>
+              <div className={`mt-2 text-sm ${parseFloat(stats.newUsers.change) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {parseFloat(stats.newUsers.change) >= 0 ? '+' : ''}{stats.newUsers.change}%
+              </div>
+            </div>
+            
+            {/* Active Users Card */}
+            <div className="bg-white rounded-lg shadow p-5">
+              <div className="flex justify-between">
+                <div>
+                  <p className="text-gray-500 text-sm">Active Users</p>
+                  <h2 className="text-3xl font-bold">{formatNumber(stats.activeUsers.count)}</h2>
+                </div>
+                <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                  <FaChalkboardTeacher className="text-orange-600" />
+                </div>
+              </div>
+              <div className={`mt-2 text-sm ${parseFloat(stats.activeUsers.change) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {parseFloat(stats.activeUsers.change) >= 0 ? '+' : ''}{stats.activeUsers.change}%
+              </div>
+            </div>
+          </div>
+          
+          {/* Charts Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-lg shadow p-5">
+                <div className="flex flex-wrap items-center mb-4">
+                  <h3 className="text-lg font-semibold mr-6">Users Growth</h3>
+                  <div className="flex mt-2 sm:mt-0">
+                    <button 
+                      className={`text-sm px-3 py-1 rounded-l-md ${activeTab === 'totalUsers' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+                      onClick={() => setActiveTab('totalUsers')}
+                    >
+                      Total Users
+                    </button>
+                    <button 
+                      className={`text-sm px-3 py-1 ${activeTab === 'projects' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+                      onClick={() => setActiveTab('projects')}
+                    >
+                      Courses
+                    </button>
+                    <button 
+                      className={`text-sm px-3 py-1 rounded-r-md ${activeTab === 'status' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+                      onClick={() => setActiveTab('status')}
+                    >
+                      Completion Status
+                    </button>
+                  </div>
+                </div>
+                <div className="h-72">
+                  <Line
+                    data={userChartData}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      scales: {
+                        y: {
+                          beginAtZero: true,
+                        },
+                      },
+                      plugins: {
+                        legend: {
+                          position: 'top',
+                        },
+                      },
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <div className="bg-white rounded-lg shadow p-5 h-full">
+                <h3 className="text-lg font-semibold mb-4">Traffic by Source</h3>
+                <div className="space-y-4 mb-4">
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Google</span>
+                      <span>45%</span>
+                    </div>
+                    <div className="h-2 bg-gray-200 rounded-full">
+                      <div className="h-2 bg-blue-500 rounded-full" style={{ width: '45%' }}></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Direct</span>
+                      <span>30%</span>
+                    </div>
+                    <div className="h-2 bg-gray-200 rounded-full">
+                      <div className="h-2 bg-blue-500 rounded-full" style={{ width: '30%' }}></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Social Media</span>
+                      <span>15%</span>
+                    </div>
+                    <div className="h-2 bg-gray-200 rounded-full">
+                      <div className="h-2 bg-blue-500 rounded-full" style={{ width: '15%' }}></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Referrals</span>
+                      <span>10%</span>
+                    </div>
+                    <div className="h-2 bg-gray-200 rounded-full">
+                      <div className="h-2 bg-blue-500 rounded-full" style={{ width: '10%' }}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Bottom Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Device Type */}
+            <div className="bg-white rounded-lg shadow p-5">
+              <h3 className="text-lg font-semibold mb-4">Traffic by Device</h3>
+              <div className="h-64">
+                <Doughnut
+                  data={deviceChartData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        position: 'bottom',
+                      },
+                    },
+                  }}
+                />
+              </div>
+            </div>
+            
+            {/* Location */}
+            <div className="bg-white rounded-lg shadow p-5">
+              <h3 className="text-lg font-semibold mb-4">Users by Location</h3>
+              <div className="h-64">
+                <Doughnut
+                  data={locationChartData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        position: 'bottom',
+                      },
+                    },
+                  }}
+                />
+              </div>
+            </div>
+            
+            {/* Recent Activity */}
+            <div className="bg-white rounded-lg shadow p-5">
+              <h3 className="text-lg font-semibold mb-4">Recent Activities</h3>
+              <div className="space-y-4">
+                {userActivity.map((activity, index) => (
+                  <div key={index} className="flex items-start">
+                    <img src={activity.avatar} alt={activity.user} className="w-10 h-10 rounded-full mr-3" />
+                    <div>
+                      <p className="text-sm font-medium">{activity.user}</p>
+                      <p className="text-xs text-gray-500">{activity.action}</p>
+                      <p className="text-xs text-gray-400 mt-1">{activity.timestamp}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 text-center">
+                <Link to="/admin/activities" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                  View All Activities
+                </Link>
+              </div>
+            </div>
+          </div>
+          
+          {/* Popular Courses Table */}
+          <div className="mt-8 bg-white rounded-lg shadow">
+            <div className="px-5 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold">Most Popular Courses</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Course Name
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Enrollments
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Completion Rate
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {courseData.map((course, index) => (
+                    <tr key={index}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center">
+                            <FaBookOpen className="text-gray-500" />
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">{course.name}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{course.enrollments.toLocaleString()}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="w-full bg-gray-200 rounded-full h-2.5">
+                            <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${course.completionRate}%` }}></div>
+                          </div>
+                          <span className="ml-3 text-sm text-gray-900">{course.completionRate}%</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <Link to={`/admin/courses/${index + 1}`} className="text-blue-600 hover:text-blue-900 mr-4">View</Link>
+                        <Link to={`/admin/courses/${index + 1}/edit`} className="text-green-600 hover:text-green-900">Edit</Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default AdminDashboard;

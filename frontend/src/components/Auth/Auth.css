@@ -1,0 +1,147 @@
+/* Auth.css - Shared styles for authentication components */
+
+.auth-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 200px);
+  padding: 40px 20px;
+  background-color: #f5f7fa;
+}
+
+.auth-card {
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
+              0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  padding: 40px 30px;
+  width: 100%;
+  max-width: 450px;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.auth-title {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.auth-subtitle {
+  color: #777;
+  font-size: 1rem;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #444;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #e1e5eb;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #0056b3;
+  box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.15);
+}
+
+.auth-button {
+  background-color: #0056b3;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 10px;
+}
+
+.auth-button:hover {
+  background-color: #003d82;
+}
+
+.auth-footer {
+  margin-top: 25px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.auth-link {
+  color: #0056b3;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.auth-link:hover {
+  color: #003d82;
+  text-decoration: underline;
+}
+
+.error-message {
+  background-color: #fff5f5;
+  color: #e53e3e;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+}
+
+.error-message::before {
+  content: '⚠️';
+  margin-right: 8px;
+}
+
+.success-message {
+  background-color: #f0fff4;
+  color: #38a169;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+}
+
+.success-message::before {
+  content: '✅';
+  margin-right: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .auth-card {
+    padding: 30px 20px;
+  }
+  
+  .auth-title {
+    font-size: 1.8rem;
+  }
+} 

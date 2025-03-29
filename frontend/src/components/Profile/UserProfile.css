@@ -1,0 +1,611 @@
+/* UserProfile.css - Styles for user profile and settings */
+
+.profile-container {
+  background-color: #f5f7fa;
+  min-height: calc(100vh - 64px);
+  padding: 30px 20px;
+}
+
+.profile-content {
+  max-width: 1000px;
+  margin: 0 auto;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+/* Loading and error states */
+.loading-state, .error-state {
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(0, 86, 179, 0.1);
+  border-top-color: #0056b3;
+  border-radius: 50%;
+  margin: 0 auto 20px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Profile header */
+.profile-header {
+  padding: 30px;
+  border-bottom: 1px solid #eee;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.profile-header-top {
+  display: flex;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.profile-avatar-large {
+  width: 120px;
+  height: 120px;
+  font-size: 3rem;
+  background-color: #0056b3;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 30px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.profile-info {
+  flex: 1;
+}
+
+.profile-name-large {
+  font-size: 2rem;
+  margin: 0 0 5px 0;
+  color: #333;
+}
+
+.profile-meta {
+  display: flex;
+  gap: 20px;
+  color: #666;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+}
+
+.profile-bio {
+  color: #444;
+  line-height: 1.5;
+  margin: 10px 0 0 0;
+}
+
+/* Profile stats */
+.profile-stats-overview {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+}
+
+.stat-item {
+  background-color: white;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #0056b3;
+  line-height: 1;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Tabs */
+.profile-tabs {
+  display: flex;
+  padding: 0 30px;
+  border-bottom: 1px solid #eee;
+  background-color: white;
+}
+
+.tab-button {
+  padding: 15px 20px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #555;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab-button:hover {
+  color: #0056b3;
+}
+
+.tab-button.active {
+  color: #0056b3;
+  border-bottom-color: #0056b3;
+}
+
+.profile-tab-content {
+  padding: 30px;
+}
+
+.tab-panel {
+  min-height: 400px;
+}
+
+.tab-title {
+  margin: 0 0 25px 0;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+/* Profile details */
+.profile-details-view {
+  max-width: 700px;
+}
+
+.profile-section {
+  margin-bottom: 30px;
+}
+
+.section-title {
+  font-size: 1.1rem;
+  color: #444;
+  margin: 0 0 15px 0;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.section-content {
+  font-size: 1rem;
+  color: #555;
+  line-height: 1.5;
+}
+
+.interests-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.interest-tag {
+  background-color: #e6f0ff;
+  color: #0056b3;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+}
+
+.subscription-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.subscription-badge.premium {
+  background-color: #ebf8f2;
+  color: #147d64;
+}
+
+.subscription-badge.free {
+  background-color: #faf5ff;
+  color: #805ad5;
+}
+
+.empty-message {
+  color: #777;
+  font-style: italic;
+}
+
+.edit-profile-button {
+  margin-top: 20px;
+}
+
+/* Form */
+.profile-form {
+  max-width: 500px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  color: #444;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: #0056b3;
+  outline: none;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 30px;
+}
+
+/* Buttons */
+.button {
+  padding: 10px 16px;
+  border-radius: 4px;
+  border: none;
+  font-size: 0.95rem;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.button:hover {
+  transform: translateY(-1px);
+}
+
+.primary-button {
+  background-color: #0056b3;
+  color: white;
+}
+
+.primary-button:hover {
+  background-color: #004494;
+}
+
+.secondary-button {
+  background-color: #e2e8f0;
+  color: #4a5568;
+}
+
+.secondary-button:hover {
+  background-color: #cbd5e0;
+}
+
+.danger-button {
+  background-color: #fff5f5;
+  color: #e53e3e;
+  border: 1px solid #fed7d7;
+}
+
+.danger-button:hover {
+  background-color: #fed7d7;
+}
+
+.upgrade-button {
+  margin-top: 10px;
+}
+
+/* Achievements */
+.achievements-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.achievement-card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #eee;
+  transition: transform 0.2s;
+}
+
+.achievement-card:hover {
+  transform: translateY(-5px);
+}
+
+.achievement-card.unlocked {
+  border-color: #c6f6d5;
+  background-color: #f0fff4;
+}
+
+.achievement-icon {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+}
+
+.achievement-icon.locked {
+  opacity: 0.3;
+}
+
+.achievement-title {
+  font-size: 1.1rem;
+  margin: 0 0 10px 0;
+  color: #333;
+}
+
+.achievement-description {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0;
+}
+
+/* Learning Stats */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.stat-card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #eee;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.stat-card-title {
+  font-size: 1.1rem;
+  color: #333;
+  margin: 0 0 20px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.stat-graph {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.progress-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.progress-inner {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-percentage {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #0056b3;
+}
+
+.progress-details {
+  flex: 1;
+}
+
+.progress-detail-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.detail-label {
+  color: #666;
+}
+
+.detail-value {
+  font-weight: 600;
+}
+
+.quiz-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+}
+
+.quiz-stat-item {
+  text-align: center;
+}
+
+.quiz-stat-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #0056b3;
+}
+
+.quiz-stat-label {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.quiz-performance-bar {
+  height: 20px;
+  background-color: #e9ecef;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.performance-level {
+  height: 100%;
+  background: linear-gradient(90deg, #0056b3 0%, #38b2ac 100%);
+}
+
+.performance-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #777;
+}
+
+.activity-calendar {
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.calendar-placeholder {
+  padding: 40px 0;
+  color: #777;
+}
+
+/* Settings */
+.settings-section {
+  margin-bottom: 40px;
+}
+
+.settings-title {
+  font-size: 1.1rem;
+  color: #444;
+  margin: 0 0 20px 0;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.settings-option {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.settings-text {
+  margin-left: 15px;
+}
+
+.settings-label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 3px;
+}
+
+.settings-description {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 24px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+  background-color: #0056b3;
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(26px);
+}
+
+.settings-section .button {
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+
+.danger-zone {
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .profile-header-top {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .profile-avatar-large {
+    margin: 0 auto 20px;
+  }
+  
+  .profile-stats-overview {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stat-graph {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-tabs {
+    flex-wrap: wrap;
+  }
+  
+  .tab-button {
+    flex: 1 0 50%;
+    text-align: center;
+  }
+} 
