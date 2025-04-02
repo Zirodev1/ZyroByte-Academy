@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { toast } from 'react-toastify';
-import { FaEdit, FaTrash, FaArrowUp, FaArrowDown, FaPlus, FaUserGraduate, FaChalkboardTeacher, FaBookOpen, FaEye, FaUsers, FaListAlt, FaTh, FaHome, FaUsersCog, FaCog, FaQuestionCircle, FaSignOutAlt, FaSearch } from 'react-icons/fa';
-
+import { FaEdit, FaTrash, FaArrowUp, FaArrowDown, FaPlus, FaSearch, FaTh } from 'react-icons/fa';
+import AdminSidebar from './adminSidebar';
 const CategoryDashboard = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -11,20 +11,7 @@ const CategoryDashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const navigate = useNavigate();
-  
-  // Sidebar navigation items
-  const sidebarItems = [
-    { name: 'Dashboard', icon: <FaHome className="w-5 h-5" />, path: '/admin' },
-    { name: 'Categories', icon: <FaTh className="w-5 h-5" />, path: '/admin/categories' },
-    { name: 'Courses', icon: <FaBookOpen className="w-5 h-5" />, path: '/admin/courses' },
-    { name: 'Modules', icon: <FaListAlt className="w-5 h-5" />, path: '/admin/modules' },
-    { name: 'Users', icon: <FaUsers className="w-5 h-5" />, path: '/admin/users' },
-    { name: 'Instructors', icon: <FaChalkboardTeacher className="w-5 h-5" />, path: '/admin/instructors' },
-    { name: 'Settings', icon: <FaCog className="w-5 h-5" />, path: '/admin/settings' },
-    { name: 'Help', icon: <FaQuestionCircle className="w-5 h-5" />, path: '/admin/help' },
-  ];
 
   // Fetch categories on component mount and when page or search changes
   useEffect(() => {
@@ -120,53 +107,9 @@ const CategoryDashboard = () => {
     navigate(`/admin/categories/edit/${id}`);
   };
   
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-  
-  const handleNavigation = (path) => {
-    navigate(path);
-  };
-
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <div className="w-64 transition-all duration-300 bg-white shadow-lg h-screen fixed left-0 z-10">
-        <div className="h-16 flex items-center justify-between px-4 border-b">
-          <div className="text-xl font-semibold text-blue-600">ZyroByte Admin</div>
-          <button 
-            onClick={toggleSidebar}
-            className="p-2 rounded-md hover:bg-gray-100"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-        </div>
-        <div className="py-4 overflow-y-auto">
-          <ul className="space-y-1">
-            {sidebarItems.map((item, index) => (
-              <li key={index}>
-                <button
-                  onClick={() => handleNavigation(item.path)}
-                  className={`flex items-center w-full px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-md
-                    ${window.location.pathname === item.path ? 'bg-blue-50 text-blue-600' : ''}`}
-                >
-                  <span className="mr-3">{item.icon}</span>
-                  <span>{item.name}</span>
-                </button>
-              </li>
-            ))}
-            <li className="px-4 pt-6">
-              <div className="border-t border-gray-200 my-1"></div>
-              <button className="flex items-center w-full px-4 py-3 text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-md mt-2">
-                <FaSignOutAlt className="w-5 h-5 mr-3" />
-                <span>Logout</span>
-              </button>
-            </li>
-          </ul>
-        </div>
-      </div>
+      <AdminSidebar />
       
       {/* Main Content */}
       <div className="flex-1 overflow-auto ml-64 transition-all duration-300">

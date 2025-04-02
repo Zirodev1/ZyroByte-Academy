@@ -34,6 +34,10 @@ import TestUploader from './components/Admin/EditorJS/TestUploader';
 import SimpleUploader from './components/Admin/EditorJS/SimpleUploader';
 import CourseList from './components/Course/CourseList';
 import CategoryCoursesList from './components/Course/CategoryCourses';
+import UserManagement from './components/Admin/User/UserManagement';
+import CreateUser from './components/Admin/User/CreateUser';
+import EditUser from './components/Admin/User/EditUser';
+import AdminSidebar from './components/Admin/adminSidebar';
 
 function App() {
   return (
@@ -69,8 +73,13 @@ function App() {
           </Route>
           
           {/* Admin Routes */}
-          <Route path="/admin" element={<PrivateRoute />}>
+          <Route path="/admin" element={<PrivateRoute /> }>
             <Route path="/admin" element={<AdminDashboard />} />
+            
+            {/* User Management Routes */}
+            <Route path="/admin/users" element={<UserManagement />} />
+            <Route path="/admin/users/create" element={<CreateUser />} />
+            <Route path="/admin/users/edit/:userId" element={<EditUser />} />
             
             {/* Course Management Routes */}
             <Route path="/admin/courses" element={<CourseManagement />} />

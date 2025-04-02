@@ -18,10 +18,9 @@ const Sidebar = ({ activePath }) => {
   // Sidebar navigation items
   const sidebarItems = [
     { name: 'Dashboard', icon: <FaHome className="w-5 h-5" />, path: '/admin' },
+    { name: 'Users', icon: <FaUsers className="w-5 h-5" />, path: '/admin/users' },
     { name: 'Categories', icon: <FaTh className="w-5 h-5" />, path: '/admin/categories' },
     { name: 'Courses', icon: <FaBookOpen className="w-5 h-5" />, path: '/admin/courses' },
-    { name: 'Modules', icon: <FaListAlt className="w-5 h-5" />, path: '/admin/modules' },
-    { name: 'Users', icon: <FaUsers className="w-5 h-5" />, path: '/admin/users' },
     { name: 'Instructors', icon: <FaChalkboardTeacher className="w-5 h-5" />, path: '/admin/instructors' },
     { name: 'Settings', icon: <FaCog className="w-5 h-5" />, path: '/admin/settings' },
     { name: 'Help', icon: <FaQuestionCircle className="w-5 h-5" />, path: '/admin/help' },
@@ -29,6 +28,17 @@ const Sidebar = ({ activePath }) => {
   
   const handleNavigation = (path) => {
     navigate(path);
+  };
+
+  const isActive = (itemPath) => {
+    if (activePath === itemPath) return true;
+    
+    // Handle child paths
+    if (itemPath !== '/admin' && window.location.pathname.startsWith(itemPath)) {
+      return true;
+    }
+    
+    return false;
   };
   
   return (
@@ -43,7 +53,7 @@ const Sidebar = ({ activePath }) => {
               <button
                 onClick={() => handleNavigation(item.path)}
                 className={`flex items-center w-full px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-md
-                  ${(activePath === item.path || window.location.pathname.includes(item.path) && item.path !== '/admin') ? 'bg-blue-50 text-blue-600' : ''}`}
+                  ${isActive(item.path) ? 'bg-blue-50 text-blue-600 font-medium' : ''}`}
               >
                 <span className="mr-3">{item.icon}</span>
                 <span>{item.name}</span>

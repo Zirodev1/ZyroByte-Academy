@@ -3,25 +3,15 @@ import { useNavigate, useParams } from "react-router-dom";
 import api from "../../../services/api";
 import { toast } from "react-toastify";
 import { FaArrowLeft, FaPlus } from "react-icons/fa";
-
+import AdminSidebar from "../adminSidebar";
 // Import components
-import Sidebar from "../Course/Sidebar";
-import ModuleForm from "./ModuleForm";
+
 import ModuleList from "./ModuleList";
 import ModuleStats from "./ModuleStats";
 
 const ModuleManagement = () => {
   const [course, setCourse] = useState(null);
   const [modules, setModules] = useState([]);
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    order: 0,
-    duration: 0,
-    isPublished: false
-  });
-  const [editing, setEditing] = useState(false);
-  const [moduleId, setModuleId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -54,7 +44,9 @@ const ModuleManagement = () => {
     try {
       setLoading(true);
       const response = await api.get(`/modules/course/${courseId}`);
-      setModules(response.data.data);
+      // Sort modules by order
+      const sortedModules = response.data.data.sort((a, b) => a.order - b.order);
+      setModules(sortedModules);
       setError("");
     } catch (err) {
       console.error("Error fetching modules:", err);
@@ -65,77 +57,33 @@ const ModuleManagement = () => {
     }
   };
 
-  const handleChange = (e) => {
-    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
-    setForm({ ...form, [e.target.name]: value });
+  const handleCreateModule = () => {
+    navigate(`/admin/courses/${courseId}/modules/create`);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const moduleData = {
-        ...form,
-        courseId: courseId
-      };
-
-      if (editing) {
-        await api.put(`/modules/${moduleId}`, moduleData);
-        toast.success("Module updated successfully");
-      } else {
-        await api.post(`/courses/${courseId}/modules`, moduleData);
-        toast.success("Module created successfully");
-      }
-
-      resetForm();
-      fetchModules();
-    } catch (error) {
-      console.error("Error saving module:", error);
-      toast.error(error.response?.data?.message || (editing ? "Failed to update module" : "Failed to create module"));
-      setLoading(false);
-    }
+  const handleEditModule = (module) => {
+    navigate(`/admin/modules/edit/${module._id}`);
   };
 
-  const handleEdit = (module) => {
-    setForm({
-      title: module.title || "",
-      description: module.description || "",
-      order: module.order || 0,
-      duration: module.duration || 0,
-      isPublished: module.isPublished || false
-    });
-    setEditing(true);
-    setModuleId(module._id);
-
-    // Scroll to the form
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this module? This will also delete all associated lessons and quizzes.")) {
-      return;
-    }
-    
+  const handleDeleteModule = async (moduleId) => {
     try {
       setLoading(true);
-      await api.delete(`/modules/${id}`);
+      await api.delete(`/modules/${moduleId}`);
       toast.success("Module deleted successfully");
       fetchModules();
     } catch (err) {
       console.error("Error deleting module:", err);
-      toast.error("Failed to delete module");
+      toast.error(err.response?.data?.message || "Failed to delete module");
       setLoading(false);
     }
   };
 
-  const handleReorder = async (id, direction) => {
+  const handleReorderModules = async (moduleId, direction) => {
     // Find current module
-    const moduleIndex = modules.findIndex(mod => mod._id === id);
+    const moduleIndex = modules.findIndex(mod => mod._id === moduleId);
     if (moduleIndex === -1) return;
     
     // Get current and target order
-    const currentModule = modules[moduleIndex];
     let targetIndex;
     
     if (direction === 'up' && moduleIndex > 0) {
@@ -146,12 +94,28 @@ const ModuleManagement = () => {
       return; // Can't move further in that direction
     }
     
+    const currentModule = modules[moduleIndex];
     const targetModule = modules[targetIndex];
     
-    // Prepare the reorder request
     try {
+      setLoading(true);
+      
+      // Swap the order of the modules
+      const updatedModules = [...modules];
+      
+      // Create temporary order values to prevent constraint violations
+      const tempOrder = -1;
+      
+      // Update orders in the frontend immediately for better UX
+      updatedModules[moduleIndex] = { ...currentModule, order: tempOrder };
+      updatedModules[targetIndex] = { ...targetModule, order: currentModule.order };
+      updatedModules[moduleIndex] = { ...currentModule, order: targetModule.order };
+      
+      setModules(updatedModules.sort((a, b) => a.order - b.order));
+      
+      // Prepare the reorder request to backend
       await api.post('/modules/reorder', {
-        courseId: courseId,
+        courseId,
         moduleOrders: [
           { id: currentModule._id, order: targetModule.order },
           { id: targetModule._id, order: currentModule.order }
@@ -159,33 +123,19 @@ const ModuleManagement = () => {
       });
       
       toast.success("Modules reordered successfully");
-      fetchModules();
+      fetchModules(); // Refresh the modules to ensure correct order
     } catch (err) {
       console.error('Error reordering modules:', err);
       toast.error("Failed to reorder modules");
+      fetchModules(); // Reset to original order on error
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const resetForm = () => {
-    setForm({
-      title: "",
-      description: "",
-      order: modules.length,
-      duration: 0,
-      isPublished: false
-    });
-    setEditing(false);
-    setModuleId(null);
-  };
-
-  const handleCreateModule = () => {
-    navigate(`/admin/courses/${courseId}/modules/create`);
   };
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Sidebar Component */}
-      <Sidebar activePath="/admin/courses" />
+       <AdminSidebar />
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto ml-64 transition-all duration-300">
@@ -250,46 +200,39 @@ const ModuleManagement = () => {
                       : course.description}
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {course.level && (
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        course.level === 'Beginner' ? 'bg-green-100 text-green-800' :
-                        course.level === 'Intermediate' ? 'bg-blue-100 text-blue-800' :
-                        'bg-purple-100 text-purple-800'
-                      }`}>
-                        {course.level}
-                      </span>
-                    )}
-                    {course.category && (
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                        {course.category}
-                      </span>
-                    )}
-                    {course.featured && (
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                        Featured
-                      </span>
-                    )}
+                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-xs">
+                      {course.level || 'All Levels'}
+                    </span>
+                    <span className="px-2 py-1 bg-green-100 text-green-800 rounded-md text-xs">
+                      {course.duration || 'Self-paced'} duration
+                    </span>
+                    <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-md text-xs">
+                      {course.category || 'Uncategorized'} category
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
           )}
           
-          {/* Module Statistics */}
-          <ModuleStats 
-            course={course} 
-            moduleCount={modules.length} 
-            loading={statsLoading} 
+          {/* Module Stats */}
+          <ModuleStats
+            courseId={courseId}
+            loading={statsLoading}
           />
           
           {/* Module List */}
-          <ModuleList 
-            modules={modules}
-            loading={loading}
-            handleEdit={handleEdit}
-            handleDelete={handleDelete}
-            handleReorder={handleReorder}
-          />
+          <div className="mb-6">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">Course Modules ({modules.length})</h2>
+            <ModuleList 
+              modules={modules} 
+              courseId={courseId}
+              handleEdit={handleEditModule}
+              handleDelete={handleDeleteModule}
+              handleReorder={handleReorderModules}
+              loading={loading}
+            />
+          </div>
         </div>
       </div>
     </div>

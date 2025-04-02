@@ -3,9 +3,9 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import api from '../../../services/api';
 import { toast } from 'react-toastify';
 import { FaArrowLeft, FaPlus } from 'react-icons/fa';
-
+import AdminSidebar from '../adminSidebar';
 // Import components
-import Sidebar from '../Course/Sidebar';
+
 import SubmoduleList from './SubmoduleList';
 import SubmoduleStats from './SubmoduleStats';
 
@@ -128,8 +128,7 @@ const SubmoduleManagement = () => {
   
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Sidebar Component */}
-      <Sidebar activePath="/admin/courses" />
+      <AdminSidebar />
       
       {/* Main Content */}
       <div className="flex-1 overflow-auto ml-64 transition-all duration-300">

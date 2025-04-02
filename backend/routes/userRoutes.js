@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router();
 const userController = require('../controllers/userController');
-const { authMiddleware } = require('../middleware/authMiddleware')
+const { authMiddleware, adminMiddleware } = require('../middleware/authMiddleware')
 
 // Auth routes
 router.post('/register', userController.registerUser);
@@ -19,5 +19,13 @@ router.post('/submit-quiz', authMiddleware, userController.submitQuizResults);
 // Stats and progress tracking routes
 router.get('/stats', authMiddleware, userController.getUserStats);
 router.get('/progress/:courseId', authMiddleware, userController.getCourseProgress);
+
+// Test endpoints
+router.get('/test', (req, res) => {
+  res.json({ message: 'User API is working' });
+});
+
+// Admin user management routes
+router.get('/', adminMiddleware, userController.getAllUsers);
 
 module.exports = router;

@@ -1,6 +1,7 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaArrowUp, FaArrowDown, FaEdit, FaTrash, FaList, FaUserGraduate, FaBookOpen, FaChalkboardTeacher, FaPlus, FaQuestionCircle } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 const ModuleList = ({
   modules,
@@ -13,6 +14,59 @@ const ModuleList = ({
   handleAddLesson,
   handleAddQuiz
 }) => {
+  const navigate = useNavigate();
+
+  const handleEditModule = (e, module) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/admin/modules/edit/${module._id}`);
+  };
+
+  const handleDeleteModule = (e, module) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (window.confirm(`Are you sure you want to delete module "${module.title}"?`)) {
+      handleDelete(module._id);
+    }
+  };
+
+  const handleManageLessons = (e, module) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/admin/modules/${module._id}/lessons`);
+  };
+
+  const handleManageQuizzes = (e, module) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/admin/modules/${module._id}/quizzes`);
+  };
+
+  const handleManageSubmodules = (e, module) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/admin/modules/${module._id}/submodules`);
+  };
+
+  const handleMoveUp = (e, moduleId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleReorder(moduleId, 'up');
+  };
+
+  const handleMoveDown = (e, moduleId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleReorder(moduleId, 'down');
+  };
+  
+  const getStatusBadgeClass = (isPublished) => {
+    return isPublished
+      ? "bg-green-100 text-green-800 border-green-200"
+      : "bg-yellow-100 text-yellow-800 border-yellow-200";
+  };
+
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
       <div className="px-5 py-4 border-b border-gray-200">
@@ -35,7 +89,7 @@ const ModuleList = ({
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
                   Order
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -44,16 +98,16 @@ const ModuleList = ({
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Description
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                   Duration
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                   Status
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
                   Content
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
                   Actions
                 </th>
               </tr>
@@ -61,8 +115,28 @@ const ModuleList = ({
             <tbody className="bg-white divide-y divide-gray-200">
               {modules.map((module, index) => (
                 <tr key={module._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {module.order || index + 1}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center text-sm font-medium text-gray-900">
+                      {module.order || index + 1}
+                    </div>
+                    <div className="flex items-center space-x-1 mt-2">
+                      <button
+                        onClick={(e) => handleMoveUp(e, module._id)}
+                        disabled={index === 0}
+                        className={`p-1 rounded ${index === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100'}`}
+                        title="Move up"
+                      >
+                        <FaArrowUp className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={(e) => handleMoveDown(e, module._id)}
+                        disabled={index === modules.length - 1}
+                        className={`p-1 rounded ${index === modules.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100'}`}
+                        title="Move down"
+                      >
+                        <FaArrowDown className="w-3 h-3" />
+                      </button>
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{module.title}</div>
@@ -78,79 +152,59 @@ const ModuleList = ({
                     {module.duration ? `${module.duration} mins` : 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {module.isPublished ? (
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                        Published
-                      </span>
-                    ) : (
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                        Draft
-                      </span>
-                    )}
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full border ${getStatusBadgeClass(module.isPublished)}`}>
+                      {module.isPublished ? 'Published' : 'Draft'}
+                    </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-2">
-                      <Link
-                        to={`/admin/modules/${module._id}/submodules`}
-                        className="text-xs px-2 py-1 bg-purple-100 text-purple-800 rounded-md hover:bg-purple-200"
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={(e) => handleManageSubmodules(e, module)}
+                        className="text-purple-600 hover:text-purple-900 font-medium"
                         title="Manage Submodules"
                       >
-                        Submodules ({module.subModuleCount || 0})
-                      </Link>
-                      <Link
-                        to={`/admin/modules/${module._id}/lessons`}
-                        className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200"
+                        <div className="flex items-center">
+                          <FaList className="mr-1" />
+                          <span>{module.subModuleCount || 0}</span>
+                        </div>
+                      </button>
+                      <button
+                        onClick={(e) => handleManageLessons(e, module)}
+                        className="text-blue-600 hover:text-blue-900 font-medium"
                         title="Manage Lessons"
                       >
-                        Lessons ({module.lessonCount || 0})
-                      </Link>
-                      <Link
-                        to={`/admin/modules/${module._id}/quizzes`}
-                        className="text-xs px-2 py-1 bg-orange-100 text-orange-800 rounded-md hover:bg-orange-200"
+                        <div className="flex items-center">
+                          <FaBookOpen className="mr-1" />
+                          <span>{module.lessonCount || 0}</span>
+                        </div>
+                      </button>
+                      <button
+                        onClick={(e) => handleManageQuizzes(e, module)}
+                        className="text-orange-600 hover:text-orange-900 font-medium"
                         title="Manage Quizzes"
                       >
-                        Quizzes ({module.quizCount || 0})
-                      </Link>
+                        <div className="flex items-center">
+                          <FaQuestionCircle className="mr-1" />
+                          <span>{module.quizCount || 0}</span>
+                        </div>
+                      </button>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
-                      <button 
-                        className="text-gray-600 hover:text-gray-900"
-                        onClick={() => handleReorder(module._id, 'up')}
-                        title="Move Up"
-                        disabled={index === 0}
-                      >
-                        <FaArrowUp className="w-4 h-4" />
-                      </button>
-                      <button 
-                        className="text-gray-600 hover:text-gray-900"
-                        onClick={() => handleReorder(module._id, 'down')}
-                        title="Move Down"
-                        disabled={index === modules.length - 1}
-                      >
-                        <FaArrowDown className="w-4 h-4" />
-                      </button>
-                      <button 
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={(e) => handleEditModule(e, module)}
                         className="text-blue-600 hover:text-blue-900"
-                        onClick={() => handleEdit(module)}
                         title="Edit Module"
                       >
-                        <FaEdit className="w-4 h-4" />
+                        <FaEdit className="w-5 h-5" />
                       </button>
-                      <Link
-                        to={`/admin/modules/${module._id}/submodules`}
-                        className="text-green-600 hover:text-green-900"
-                        title="View Submodules"
-                      >
-                        <FaList className="w-4 h-4" />
-                      </Link>
-                      <button 
+                      <button
+                        onClick={(e) => handleDeleteModule(e, module)}
                         className="text-red-600 hover:text-red-900"
-                        onClick={() => handleDelete(module._id)}
                         title="Delete Module"
                       >
-                        <FaTrash className="w-4 h-4" />
+                        <FaTrash className="w-5 h-5" />
                       </button>
                     </div>
                   </td>

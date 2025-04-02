@@ -3,7 +3,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import api from '../../../services/api';
 import { toast } from 'react-toastify';
 import { FaArrowLeft } from 'react-icons/fa';
-import Sidebar from '../Course/Sidebar';
+import AdminSidebar from '../adminSidebar';
 
 const ModuleCreate = () => {
   const { courseId } = useParams();
@@ -61,8 +61,7 @@ const ModuleCreate = () => {
   
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Sidebar Component */}
-      <Sidebar activePath="/admin/courses" />
+      <AdminSidebar />
       
       {/* Main Content */}
       <div className="flex-1 overflow-auto ml-64 transition-all duration-300">

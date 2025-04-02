@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { FaPlus } from "react-icons/fa";
 
 // Import components
-import Sidebar from "./Sidebar";
+import AdminSidebar from "../adminSidebar";
 import CourseList from "./CourseList";
 import CourseStats from "./CourseStats";
 
@@ -139,8 +139,7 @@ const CourseManagement = () => {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Sidebar Component */}
-      <Sidebar activePath="/admin/courses" />
+      <AdminSidebar />
       
       {/* Main Content */}
       <div className="flex-1 overflow-auto ml-64 transition-all duration-300">

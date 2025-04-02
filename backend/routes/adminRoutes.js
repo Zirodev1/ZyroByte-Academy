@@ -3,7 +3,11 @@ const router = express.Router();
 const courseController = require('../controllers/courseController');
 const lessonController = require('../controllers/lessonController');
 const quizController = require('../controllers/quizController');
+const userController = require('../controllers/userController');
 const { adminMiddleware } = require('../middleware/authMiddleware');
+
+// User management endpoints
+router.get('/users', adminMiddleware, userController.getAllUsers);
 
 router.post('/courses', adminMiddleware, courseController.createCourse);
 router.put('/courses/:id', adminMiddleware, courseController.updateCourse);
